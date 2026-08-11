@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 const categories = ['Programming', 'Data Engineering', 'Cloud', 'AI', 'Cybersecurity', 'Career'];
 
 const featuredPosts = [
@@ -60,6 +62,10 @@ const posts = [
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [authMode, setAuthMode] = useState('login');
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [statusMessage, setStatusMessage] = useState('');
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   const filteredPosts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -74,6 +80,41 @@ export default function App() {
       ),
     );
   }, [searchTerm]);
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleAuthSubmit = async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      ...(authMode === 'register' ? { name: formData.name } : {}),
+      email: formData.email,
+      password: formData.password,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${authMode === 'login' ? 'login' : 'register'}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || 'Authentication failed');
+      }
+
+      setLoggedInUser(result.user);
+      setStatusMessage(result.message);
+      setFormData({ name: '', email: '', password: '' });
+    } catch (error) {
+      setStatusMessage(error.message);
+    }
+  };
 
   return (
     <div className="page-shell">
@@ -134,6 +175,84 @@ export default function App() {
               <span>Popular category</span>
               <h3>Data Engineering</h3>
             </div>
+          </div>
+        </section>
+
+        <section className="auth-panel">
+          <div className="auth-card">
+            <div className="auth-header">
+              <span className="eyebrow">Account access</span>
+              <h2>{authMode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
+            </div>
+
+            <div className="auth-toggle">
+              <button
+                type="button"
+                className={authMode === 'login' ? 'toggle-btn active' : 'toggle-btn'}
+                onClick={() => setAuthMode('login')}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className={authMode === 'register' ? 'toggle-btn active' : 'toggle-btn'}
+                onClick={() => setAuthMode('register')}
+              >
+                Register
+              </button>
+            </div>
+
+            <form onSubmit={handleAuthSubmit} className="auth-form">
+              {authMode === 'register' && (
+                <label>
+                  Full name
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </label>
+              )}
+
+              <label>
+                Email
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
+
+              <label>
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter your password"
+                  required
+                />
+              </label>
+
+              <button type="submit" className="primary-btn auth-submit">
+                {authMode === 'login' ? 'Login' : 'Register'}
+              </button>
+            </form>
+
+            {statusMessage && <p className="status-message">{statusMessage}</p>}
+
+            {loggedInUser && (
+              <div className="user-badge">
+                Logged in as <strong>{loggedInUser.name}</strong>
+              </div>
+            )}
           </div>
         </section>
 

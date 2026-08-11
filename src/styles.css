@@ -337,6 +337,95 @@ button {
   outline-offset: 2px;
 }
 
+.auth-panel {
+  padding-top: 40px;
+}
+
+.auth-card {
+  max-width: 520px;
+  margin: 0 auto;
+  background: rgba(17, 28, 47, 0.95);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 24px 50px var(--shadow);
+}
+
+.auth-header h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.auth-toggle {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0 20px;
+}
+
+.toggle-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #071a2d;
+  border-color: transparent;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.auth-form input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  color: var(--text);
+}
+
+.auth-form input:focus {
+  outline: 2px solid rgba(91, 192, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.status-message {
+  margin-top: 18px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.user-badge {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(91, 192, 255, 0.12);
+  border: 1px solid rgba(91, 192, 255, 0.25);
+  border-radius: 10px;
+  color: var(--text);
+}
+
 .empty-state {
   border: 1px solid var(--line);
   border-radius: 18px;
