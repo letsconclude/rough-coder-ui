@@ -59,6 +59,131 @@ button {
   padding: 18px 0 24px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 11, 19, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.auth-modal {
+  position: relative;
+  width: min(440px, 100%);
+  background: rgba(11, 22, 36, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 22px;
+}
+
+.tab {
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #05131d;
+}
+
+.auth-modal h2 {
+  margin: 0 0 18px;
+  font-size: 2rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-form input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  color: var(--text);
+}
+
+.auth-form input.input-error {
+  border-color: #ff7b7b;
+  box-shadow: 0 0 0 1px rgba(255, 123, 123, 0.45);
+}
+
+.field-error {
+  color: #ff9b9b;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.auth-form input:focus {
+  outline: 2px solid rgba(91, 192, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.remember-row input {
+  width: auto;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
 .brand-block {
   display: flex;
   align-items: center;
@@ -90,7 +215,9 @@ button {
 .nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 26px;
+  flex: 1;
 }
 
 .nav a,
@@ -117,6 +244,10 @@ button {
 .primary-btn {
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
   color: #05131d;
+}
+
+.login-btn {
+  min-width: 110px;
 }
 
 .secondary-btn {

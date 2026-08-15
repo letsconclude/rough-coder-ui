@@ -58,8 +58,25 @@ const posts = [
   },
 ];
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   const filteredPosts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -75,8 +92,252 @@ export default function App() {
     );
   }, [searchTerm]);
 
+  const validateField = (name, value, mode) => {
+    if (name === 'fullName') {
+      if (mode === 'register' && !value.trim()) {
+        return 'Full name is required.';
+      }
+      return '';
+    }
+
+    if (name === 'email') {
+      if (!value.trim()) {
+        return 'Email is required.';
+      }
+      if (!emailRegex.test(value)) {
+        return 'Please enter a valid email address.';
+      }
+      return '';
+    }
+
+    if (name === 'password') {
+      if (!value) {
+        return 'Password is required.';
+      }
+      if (!passwordRegex.test(value)) {
+        return 'Password must be at least 6 characters and include one lowercase, one uppercase, and one number.';
+      }
+      if (mode === 'register' && formData.confirmPassword && value !== formData.confirmPassword) {
+        return 'Passwords do not match.';
+      }
+      return '';
+    }
+
+    if (name === 'confirmPassword') {
+      if (!value) {
+        return 'Please confirm your password.';
+      }
+      if (value !== formData.password) {
+        return 'Passwords do not match.';
+      }
+      return '';
+    }
+
+    return '';
+  };
+
+  const validateForm = (values, mode) => {
+    const nextErrors = {
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
+
+    nextErrors.fullName = validateField('fullName', values.fullName, mode);
+    nextErrors.email = validateField('email', values.email, mode);
+    nextErrors.password = validateField('password', values.password, mode);
+
+    if (mode === 'register') {
+      nextErrors.confirmPassword = validateField('confirmPassword', values.confirmPassword, mode);
+    }
+
+    return nextErrors;
+  };
+
+  const handleAuthModeChange = (mode) => {
+    setAuthMode(mode);
+    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
+  };
+
+  const openAuthModal = (mode = 'signin') => {
+    setAuthMode(mode);
+    setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setIsAuthOpen(true);
+  };
+
+  const handleFieldChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    const nextError = validateField(name, value, authMode);
+    setErrors((current) => ({
+      ...current,
+      [name]: nextError,
+      ...(name === 'password' && authMode === 'register' && formData.confirmPassword
+        ? { confirmPassword: value === formData.confirmPassword ? '' : 'Passwords do not match.' }
+        : {}),
+      ...(name === 'confirmPassword' && authMode === 'register'
+        ? { confirmPassword: value === formData.password ? '' : 'Passwords do not match.' }
+        : {}),
+    }));
+  };
+
+  const handleAuthSubmit = (event) => {
+    event.preventDefault();
+
+    const nextErrors = validateForm(formData, authMode);
+    setErrors(nextErrors);
+
+    const hasErrors = Object.values(nextErrors).some(Boolean);
+    if (hasErrors) {
+      return;
+    }
+
+    setIsAuthOpen(false);
+    setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthOpen(false);
+    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+  };
+
   return (
     <div className="page-shell">
+      {isAuthOpen && (
+        <div className="auth-overlay" onClick={closeAuthModal}>
+          <div className="auth-modal" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="close-btn"
+              onClick={closeAuthModal}
+              aria-label="Close login form"
+            >
+              ×
+            </button>
+
+            <div className="auth-tabs">
+              <button
+                type="button"
+                className={authMode === 'signin' ? 'tab active' : 'tab'}
+                onClick={() => handleAuthModeChange('signin')}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                className={authMode === 'register' ? 'tab active' : 'tab'}
+                onClick={() => handleAuthModeChange('register')}
+              >
+                Register
+              </button>
+            </div>
+
+            <h2>{authMode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
+
+            <form className="auth-form" onSubmit={handleAuthSubmit} noValidate>
+              {authMode === 'register' && (
+                <div className="field-group">
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleFieldChange}
+                    placeholder="Full name"
+                    aria-label="Full name"
+                    className={errors.fullName ? 'input-error' : ''}
+                  />
+                  {errors.fullName && <span className="field-error">{errors.fullName}</span>}
+                </div>
+              )}
+
+              <div className="field-group">
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFieldChange}
+                  onBlur={(event) => {
+                    const nextError = validateField(event.target.name, event.target.value, authMode);
+                    setErrors((current) => ({
+                      ...current,
+                      email: nextError,
+                    }));
+                  }}
+                  placeholder="Email address"
+                  aria-label="Email address"
+                  className={errors.email ? 'input-error' : ''}
+                  aria-invalid={Boolean(errors.email)}
+                />
+                {errors.email && <span className="field-error">{errors.email}</span>}
+              </div>
+
+              <div className="field-group">
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleFieldChange}
+                  onBlur={(event) => {
+                    const nextError = validateField(event.target.name, event.target.value, authMode);
+                    setErrors((current) => ({
+                      ...current,
+                      password: nextError,
+                    }));
+                  }}
+                  placeholder={authMode === 'signin' ? 'Password' : 'Create password'}
+                  aria-label={authMode === 'signin' ? 'Password' : 'Create password'}
+                  className={errors.password ? 'input-error' : ''}
+                  aria-invalid={Boolean(errors.password)}
+                />
+                {errors.password && <span className="field-error">{errors.password}</span>}
+              </div>
+
+              {authMode === 'register' && (
+                <div className="field-group">
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleFieldChange}
+                    onBlur={(event) => {
+                      const nextError = validateField(event.target.name, event.target.value, authMode);
+                      setErrors((current) => ({
+                        ...current,
+                        confirmPassword: nextError,
+                      }));
+                    }}
+                    placeholder="Confirm password"
+                    aria-label="Confirm password"
+                    className={errors.confirmPassword ? 'input-error' : ''}
+                    aria-invalid={Boolean(errors.confirmPassword)}
+                  />
+                  {errors.confirmPassword && <span className="field-error">{errors.confirmPassword}</span>}
+                </div>
+              )}
+
+              {authMode === 'signin' && (
+                <label className="remember-row">
+                  <input type="checkbox" />
+                  <span>Keep me signed in</span>
+                </label>
+              )}
+
+              <button type="submit" className="primary-btn auth-submit">
+                {authMode === 'signin' ? 'Login' : 'Register'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <header className="topbar">
         <div className="brand-block">
           <div className="brand-mark">R</div>
@@ -94,7 +355,16 @@ export default function App() {
           <a href="#contact">Contact</a>
         </nav>
 
-        <button className="primary-btn">Join Newsletter</button>
+        <div className="header-actions">
+          <button type="button" className="primary-btn">Join Newsletter</button>
+          <button
+            type="button"
+            className="primary-btn login-btn"
+            onClick={() => openAuthModal('signin')}
+          >
+            Login/Register
+          </button>
+        </div>
       </header>
 
       <main>
