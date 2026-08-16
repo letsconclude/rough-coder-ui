@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { auth } from './api';
 
 const categories = ['Programming', 'Data Engineering', 'Cloud', 'AI', 'Cybersecurity', 'Career'];
 
@@ -78,6 +79,8 @@ export default function App() {
     password: '',
     confirmPassword: '',
   });
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   const filteredPosts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -160,6 +163,7 @@ export default function App() {
     setAuthMode(mode);
     setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
     setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setAuthError('');
   };
 
   const handleFieldChange = (event) => {
@@ -183,8 +187,9 @@ export default function App() {
     }));
   };
 
-  const handleAuthSubmit = (event) => {
+  const handleAuthSubmit = async (event) => {
     event.preventDefault();
+    setAuthError('');
 
     const nextErrors = validateForm(formData, authMode);
     setErrors(nextErrors);
@@ -194,22 +199,46 @@ export default function App() {
       return;
     }
 
-    // Set user as authenticated
-    const user = {
-      email: formData.email,
-      fullName: formData.fullName || formData.email.split('@')[0],
-    };
-    setCurrentUser(user);
-    setIsAuthenticated(true);
-    setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setAuthLoading(true);
+
+    try {
+      let response;
+      
+      if (authMode === 'signin') {
+        response = await auth.signin(formData.email, formData.password);
+      } else {
+        response = await auth.register(formData.fullName, formData.email, formData.password);
+      }
+
+      // Store token and user info
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('currentUser', JSON.stringify(response.user));
+      }
+
+      // Set user as authenticated
+      const user = {
+        email: response.user?.email || formData.email,
+        fullName: response.user?.fullName || formData.fullName || formData.email.split('@')[0],
+      };
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+    } catch (error) {
+      setAuthError(error.message || 'Authentication failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleLogout = () => {
+    auth.logout();
     setIsAuthenticated(false);
     setCurrentUser(null);
     setAuthMode('signin');
     setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
     setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setAuthError('');
   };
 
   return (
@@ -235,6 +264,8 @@ export default function App() {
             </div>
 
             <h2>{authMode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
+
+            {authError && <div className="auth-error">{authError}</div>}
 
             <form className="auth-form" onSubmit={handleAuthSubmit} noValidate>
               {authMode === 'register' && (
@@ -324,8 +355,8 @@ export default function App() {
                 </label>
               )}
 
-              <button type="submit" className="primary-btn auth-submit">
-                {authMode === 'signin' ? 'Login' : 'Register'}
+              <button type="submit" className="primary-btn auth-submit" disabled={authLoading}>
+                {authLoading ? 'Loading...' : (authMode === 'signin' ? 'Login' : 'Register')}
               </button>
             </form>
           </div>
