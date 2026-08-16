@@ -63,8 +63,9 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('signin');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -158,13 +159,7 @@ export default function App() {
   const handleAuthModeChange = (mode) => {
     setAuthMode(mode);
     setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
-  };
-
-  const openAuthModal = (mode = 'signin') => {
-    setAuthMode(mode);
     setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
-    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
-    setIsAuthOpen(true);
   };
 
   const handleFieldChange = (event) => {
@@ -199,30 +194,29 @@ export default function App() {
       return;
     }
 
-    setIsAuthOpen(false);
+    // Set user as authenticated
+    const user = {
+      email: formData.email,
+      fullName: formData.fullName || formData.email.split('@')[0],
+    };
+    setCurrentUser(user);
+    setIsAuthenticated(true);
     setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
   };
 
-  const closeAuthModal = () => {
-    setIsAuthOpen(false);
-    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setAuthMode('signin');
     setFormData({ fullName: '', email: '', password: '', confirmPassword: '' });
+    setErrors({ fullName: '', email: '', password: '', confirmPassword: '' });
   };
 
   return (
     <div className="page-shell">
-      {isAuthOpen && (
-        <div className="auth-overlay" onClick={closeAuthModal}>
-          <div className="auth-modal" onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className="close-btn"
-              onClick={closeAuthModal}
-              aria-label="Close login form"
-            >
-              ×
-            </button>
-
+      {!isAuthenticated && (
+        <div className="auth-overlay">
+          <div className="auth-modal">
             <div className="auth-tabs">
               <button
                 type="button"
@@ -338,173 +332,180 @@ export default function App() {
         </div>
       )}
 
-      <header className="topbar">
-        <div className="brand-block">
-          <div className="brand-mark">R</div>
-          <div>
-            <p className="brand-name">Rough Coder</p>
-            <span className="brand-sub">Studio</span>
-          </div>
-        </div>
-
-        <nav className="nav">
-          <a href="#home">Home</a>
-          <a href="#blog">Blog</a>
-          <a href="#topics">Topics</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-        </nav>
-
-        <div className="header-actions">
-          <button type="button" className="primary-btn">Join Newsletter</button>
-          <button
-            type="button"
-            className="primary-btn login-btn"
-            onClick={() => openAuthModal('signin')}
-          >
-            Login/Register
-          </button>
-        </div>
-      </header>
-
-      <main>
-        <section className="hero" id="home">
-          <div className="hero-copy">
-            <span className="eyebrow">Learn. Build. Scale.</span>
-            <h1>Data, code, and digital skills for the next generation.</h1>
-            <p>
-              Explore practical lessons on programming, data engineering, cloud systems, and modern IT careers.
-            </p>
-            <div className="hero-actions">
-              <button className="primary-btn">Read Articles</button>
-              <button className="secondary-btn">Explore Topics</button>
-            </div>
-            <div className="stats">
+      {isAuthenticated && (
+        <>
+          <header className="topbar">
+            <div className="brand-block">
+              <div className="brand-mark">R</div>
               <div>
-                <strong>250+</strong>
-                <span>Tech lessons</span>
-              </div>
-              <div>
-                <strong>18k</strong>
-                <span>Monthly readers</span>
-              </div>
-              <div>
-                <strong>12</strong>
-                <span>Learning tracks</span>
+                <p className="brand-name">Rough Coder</p>
+                <span className="brand-sub">Studio</span>
               </div>
             </div>
-          </div>
 
-          <div className="hero-card">
-            <div className="mini-card blue">
-              <span>Trending topic</span>
-              <h3>Python Data Pipelines</h3>
-            </div>
-            <div className="mini-card dark">
-              <span>Popular category</span>
-              <h3>Data Engineering</h3>
-            </div>
-          </div>
-        </section>
+            <nav className="nav">
+              <a href="#home">Home</a>
+              <a href="#blog">Blog</a>
+              <a href="#topics">Topics</a>
+              <a href="#about">About</a>
+              <a href="#contact">Contact</a>
+            </nav>
 
-        <section className="featured" id="topics">
-          <div className="section-heading">
-            <span className="eyebrow">Featured topics</span>
-            <h2>Start learning the skills that matter</h2>
-          </div>
-
-          <div className="category-grid">
-            {categories.map((category) => (
-              <div key={category} className="category-item">
-                <span>{category}</span>
+            <div className="header-actions">
+              <button type="button" className="primary-btn">Join Newsletter</button>
+              <div className="user-info">
+                <span>{currentUser?.fullName || currentUser?.email}</span>
+                <button
+                  type="button"
+                  className="secondary-btn login-btn"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="featured-posts">
-          <div className="section-heading inline">
-            <div>
-              <span className="eyebrow">Featured content</span>
-              <h2>Latest tutorials and insights</h2>
             </div>
-            <a href="#blog">View all posts</a>
-          </div>
+          </header>
 
-          <div className="card-grid">
-            {featuredPosts.map((post) => (
-              <article key={post.title} className="post-card highlight">
-                <div className="tag">{post.category}</div>
-                <h3>{post.title}</h3>
-                <p>{post.description}</p>
-                <div className="meta-row">
-                  <span>{post.readTime}</span>
-                  <button>Read more</button>
+          <main>
+            <section className="hero" id="home">
+              <div className="hero-copy">
+                <span className="eyebrow">Learn. Build. Scale.</span>
+                <h1>Data, code, and digital skills for the next generation.</h1>
+                <p>
+                  Explore practical lessons on programming, data engineering, cloud systems, and modern IT careers.
+                </p>
+                <div className="hero-actions">
+                  <button className="primary-btn">Read Articles</button>
+                  <button className="secondary-btn">Explore Topics</button>
                 </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="blog-section" id="blog">
-          <div className="section-heading inline">
-            <div>
-              <span className="eyebrow">Blog</span>
-              <h2>Latest articles</h2>
-            </div>
-            <div className="search-box">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search articles..."
-                aria-label="Search articles"
-              />
-            </div>
-          </div>
-
-          <div className="articles-list">
-            {filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => (
-                <article key={post.id} className="article-row">
-                  <div className="article-badge">{post.category}</div>
-                  <div className="article-copy">
-                    <h3>{post.title}</h3>
-                    <p>{post.summary}</p>
-                    <div className="article-meta">
-                      <span>{post.author}</span>
-                      <span>{post.date}</span>
-                    </div>
+                <div className="stats">
+                  <div>
+                    <strong>250+</strong>
+                    <span>Tech lessons</span>
                   </div>
-                </article>
-              ))
-            ) : (
-              <div className="empty-state">No articles match your search.</div>
-            )}
-          </div>
-        </section>
+                  <div>
+                    <strong>18k</strong>
+                    <span>Monthly readers</span>
+                  </div>
+                  <div>
+                    <strong>12</strong>
+                    <span>Learning tracks</span>
+                  </div>
+                </div>
+              </div>
 
-        <section className="about" id="about">
-          <div className="about-card">
-            <span className="eyebrow">Why Rough Coder?</span>
-            <h2>Practical learning for real-world technology careers.</h2>
-            <p>
-              We turn complex technical topics into simple, actionable lessons for beginners and professionals alike.
-            </p>
-          </div>
-        </section>
-      </main>
+              <div className="hero-card">
+                <div className="mini-card blue">
+                  <span>Trending topic</span>
+                  <h3>Python Data Pipelines</h3>
+                </div>
+                <div className="mini-card dark">
+                  <span>Popular category</span>
+                  <h3>Data Engineering</h3>
+                </div>
+              </div>
+            </section>
 
-      <footer className="footer" id="contact">
-        <div>
-          <p className="brand-name">Rough Coder</p>
-        </div>
-        <div className="footer-links">
-          <a href="#blog">Blog</a>
-          <a href="#topics">Topics</a>
-          <a href="#about">About</a>
-        </div>
-      </footer>
+            <section className="featured" id="topics">
+              <div className="section-heading">
+                <span className="eyebrow">Featured topics</span>
+                <h2>Start learning the skills that matter</h2>
+              </div>
+
+              <div className="category-grid">
+                {categories.map((category) => (
+                  <div key={category} className="category-item">
+                    <span>{category}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="featured-posts">
+              <div className="section-heading inline">
+                <div>
+                  <span className="eyebrow">Featured content</span>
+                  <h2>Latest tutorials and insights</h2>
+                </div>
+                <a href="#blog">View all posts</a>
+              </div>
+
+              <div className="card-grid">
+                {featuredPosts.map((post) => (
+                  <article key={post.title} className="post-card highlight">
+                    <div className="tag">{post.category}</div>
+                    <h3>{post.title}</h3>
+                    <p>{post.description}</p>
+                    <div className="meta-row">
+                      <span>{post.readTime}</span>
+                      <button>Read more</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="blog-section" id="blog">
+              <div className="section-heading inline">
+                <div>
+                  <span className="eyebrow">Blog</span>
+                  <h2>Latest articles</h2>
+                </div>
+                <div className="search-box">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search articles..."
+                    aria-label="Search articles"
+                  />
+                </div>
+              </div>
+
+              <div className="articles-list">
+                {filteredPosts.length > 0 ? (
+                  filteredPosts.map((post) => (
+                    <article key={post.id} className="article-row">
+                      <div className="article-badge">{post.category}</div>
+                      <div className="article-copy">
+                        <h3>{post.title}</h3>
+                        <p>{post.summary}</p>
+                        <div className="article-meta">
+                          <span>{post.author}</span>
+                          <span>{post.date}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="empty-state">No articles match your search.</div>
+                )}
+              </div>
+            </section>
+
+            <section className="about" id="about">
+              <div className="about-card">
+                <span className="eyebrow">Why Rough Coder?</span>
+                <h2>Practical learning for real-world technology careers.</h2>
+                <p>
+                  We turn complex technical topics into simple, actionable lessons for beginners and professionals alike.
+                </p>
+              </div>
+            </section>
+          </main>
+
+          <footer className="footer" id="contact">
+            <div>
+              <p className="brand-name">Rough Coder</p>
+            </div>
+            <div className="footer-links">
+              <a href="#blog">Blog</a>
+              <a href="#topics">Topics</a>
+              <a href="#about">About</a>
+            </div>
+          </footer>
+        </>
+      )}
     </div>
   );
 }

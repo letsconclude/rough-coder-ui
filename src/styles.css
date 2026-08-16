@@ -66,18 +66,33 @@ button {
 .header-actions {
   display: flex;
   align-items: center;
+  gap: 14px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
   gap: 12px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+
+.user-info span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .auth-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 11, 19, 0.7);
+  background: linear-gradient(135deg, rgba(10, 14, 39, 0.98), rgba(20, 27, 46, 0.95));
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   z-index: 50;
+  backdrop-filter: blur(20px);
 }
 
 .auth-modal {
@@ -86,7 +101,7 @@ button {
   background: rgba(10, 14, 39, 0.95);
   border: 1px solid var(--line);
   border-radius: 20px;
-  padding: 32px 28px 28px;
+  padding: 40px 32px;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(20px);
 }
@@ -99,7 +114,7 @@ button {
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 6px;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
 }
 
 .tab {
@@ -119,8 +134,12 @@ button {
 }
 
 .auth-modal h2 {
-  margin: 0 0 18px;
+  margin: 0 0 22px;
   font-size: 2rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .auth-form {
@@ -181,17 +200,7 @@ button {
 }
 
 .close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text);
-  font-size: 1.4rem;
-  line-height: 1;
+  display: none;
 }
 
 .brand-block {
